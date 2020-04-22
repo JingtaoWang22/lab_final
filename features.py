@@ -6,6 +6,7 @@ This is a temporary script file.
 """
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 class BacFeature:
     #bacteria feature
     '''
@@ -121,13 +122,15 @@ class InputFeature:
     def __init__(self,bac_feature,media_feature):  #accept bacfeature and mediafeature classes
         self.bac_feature=(bac_feature)   
         self.media_feature=(media_feature)
-        
-        self.feature=np.concatenate((bac_feature.feature,media_feature.feature))
-        
+                                          #19+24
+        self.feature=np.concatenate((bac_feature.feature,media_feature.feature)) # this is
+                                                            # the feature that is ready
+                                                            # for putting into random forest
+    
     
 def randombac():
-    total_gene=random.randint(200,50000)
-    random_feature=constrained_sum_sample_pos(19,total_gene)
+    total_gene=random.randint(200,50000)   # #total_gene number of genes each catagory
+    random_feature=constrained_sum_sample_pos(19,total_gene) 
     bac=BacFeature(random_feature)
     return bac
 
@@ -136,10 +139,63 @@ def randommedia():
     media=MediaFeature(random_feature)
     return media
         
+def generate_param(input):
+    exp=0
+    lag=70 #min
+    num_gene=0
+    score=0
+    for i in range(19):
+        num_gene+=input[i]
+    score+=num_gene/1000
+    score-=np.var(input[19:43])   # -22 to 50
+    lag=lag-score/3
+    exp=score+22
+    return lag,exp
+
+def generate_abs(lag,exp):
+    high=500
+    low= 100
+    abso=[]
+    total=30
+    llag=0
+    lexp=0
+    llag=int(lag/10)
+    for i in range(llag):
+        abso.append(low)
+    
+    for i in range(llag,30):
+        if ((i-llag)*exp+low>high):
+            abso.append(high)
+        else:
+            abso.append((i-llag)*exp+low)
+    return abso        
         
+class generator:
+    def __init__(self):
+        self.inpf=[]
+        self.lag=[]
+        self.exp=[]
+        self.abso=[]
         
+    def generate(self,number=1):
         
-        
-        
-        
+        for i in range(number):
+            m=randommedia()
+            b=randombac()
+            inpf=InputFeature(b,m).feature
+            lag,exp=generate_param(inpf)
+            abso=generate_abs(lag,exp)
+            self.inpf.append(inpf)
+            self.lag.append(lag)
+            self.exp.append(exp)
+            self.abso.append(abso)
+            print ("input feature: "+str(inpf))
+            print("lag length: "+str(lag))
+            print("exp slope: " +str(exp))
+            print("absorbance: "+str(abso))
+            print()
+g=generator()
+g.generate(3)
+plt.plot(g.abso[2])
+plt.show()
         
